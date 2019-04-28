@@ -38,7 +38,8 @@ public class MainController
 
 	private Map<String, TableData> tableData = new TreeMap<String, TableData>();
 	String connectionUrl = "jdbc:sqlserver://DESKTOP-K7FKTFD\\\\SQLEXPRESS:61180;" + "database=PZM1;" + "user=Eldiar;" + "password=12345;";
-
+	//String connectionUrl = "jdbc:sqlserver://localhost:1433;" + "database=PZM1;" + "user=SQLTEACHER;"
+		//+ "password=12345;";
 	@FXML
 	public void initialize()
 	{
@@ -51,10 +52,13 @@ public class MainController
 
 			while (resultSet.next())
 			{
-				if ("trace_xe_action_map".equals(resultSet.getString(3)) || "trace_xe_event_map".equals(resultSet.getString(3)) || "sysdiagrams".equals(resultSet.getString(3)))
+			    String tableName = resultSet.getString(3);
+			    
+				if ("trace_xe_action_map".equals(tableName) || "trace_xe_event_map".equals(resultSet.getString(3)) || "sysdiagrams".equals(resultSet.getString(3)))
 					continue;
-				ResultSet foreignKeys = meta.getImportedKeys(null, null, resultSet.getString(3));
-				addNewTable(resultSet.getString(3), foreignKeys);
+				ResultSet foreignKeys = meta.getImportedKeys(null, null, tableName);
+				ResultSet primaryKeys = meta.getPrimaryKeys(null, null, tableName);
+				addNewTable(tableName,primaryKeys, foreignKeys);
 			}
 		}
 		// Handle any errors that may have occurred.
@@ -187,7 +191,7 @@ public class MainController
 		table.setItems(data.getValues());
 	}
 
-	public void addNewTable(String tableName, ResultSet foreignKeys)
+	public void addNewTable(String tableName,ResultSet primaryKeys, ResultSet foreignKeys)
 	{
 		try
 		{
@@ -198,7 +202,7 @@ public class MainController
 
 			ResultSet rs = stmt.executeQuery(SQL);
 
-			TableData da = new TableData(rs, foreignKeys);
+			TableData da = new TableData(rs,primaryKeys, foreignKeys);
 			da.setTableName(tableName);
 			tableData.put(tableName, da);
 

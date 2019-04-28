@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -30,8 +31,10 @@ public class TableData
 	private String tableName = "";
 
 	// TableColumn,ForeignTable
-	private Map<String, String> foreignKeys = new HashMap<>();
-
+	private List<String> primaryKeys = new ArrayList<>();
+	// TableColumn,ForeignTable
+		private Map<String, String> foreignKeys = new HashMap<>();
+		
 	private ObservableList<BaseEntity> values = FXCollections.observableArrayList();
 
 	// Copy of values entity
@@ -42,12 +45,12 @@ public class TableData
 
 	}
 
-	public TableData(ResultSet sqlQuery, ResultSet foreignKeys)
+	public TableData(ResultSet sqlQuery, ResultSet primaryKeys, ResultSet foreignKeys)
 	{
-		loadFromQuery(sqlQuery, foreignKeys);
+		loadFromQuery(sqlQuery,primaryKeys, foreignKeys);
 	}
 
-	public void loadFromQuery(ResultSet sqlQuery, ResultSet foreignKeysResult)
+	public void loadFromQuery(ResultSet sqlQuery,ResultSet primaryKeysResult, ResultSet foreignKeysResult)
 	{
 		try
 		{
@@ -69,6 +72,11 @@ public class TableData
 				data.get(foreignKeysResult.getString("FKCOLUMN_NAME")).setForeignColumn(foreignKeysResult.getString("PKCOLUMN_NAME"));
 				data.get(foreignKeysResult.getString("FKCOLUMN_NAME")).setForeignTable(foreignKeysResult.getString("PKTABLE_NAME"));
 			}
+			while (primaryKeysResult.next()) {
+			    this.primaryKeys.add(primaryKeysResult.getString("COLUMN_NAME"));
+		                
+		            }
+			System.out.println(primaryKeys);
 			loadValues(sqlQuery);
 
 		} catch (SQLException e)
