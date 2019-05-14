@@ -10,9 +10,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import application.TableInfo.TableColumnData;
 import application.TableInfo.TableData;
 import application.model.BaseEntity;
+import application.util.XMLExporter;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -37,16 +41,13 @@ public class MainController
 	private TabPane tabView;
 
 	private Map<String, TableData> tableData = new TreeMap<String, TableData>();
-	String connectionUrl = "jdbc:sqlserver://DESKTOP-K7FKTFD\\\\SQLEXPRESS:61180;" + "database=PZM1;" + "user=Eldiar;" + "password=12345;";
-	//String connectionUrl = "jdbc:sqlserver://localhost:1433;" + "database=PZM1;" + "user=SQLTEACHER;"
-		//+ "password=12345;";
-	@FXML
-	public void initialize()
+
+	public void login(Connection connection)
 	{
 
 		try
 		{
-			setConnection(DriverManager.getConnection(connectionUrl));
+			setConnection(connection);
 			DatabaseMetaData meta = connection.getMetaData();
 			ResultSet resultSet = meta.getTables(null, null, null, new String[] { "TABLE" });
 
@@ -61,14 +62,15 @@ public class MainController
 				addNewTable(tableName,primaryKeys, foreignKeys);
 			}
 		}
+		
 		// Handle any errors that may have occurred.
 		catch (SQLException e)
 		{
 			e.printStackTrace();
 		}
-
 		tableData.forEach((key, value) -> {
 			addTab(value);
+			
 		});
 		tabView.tabMinWidthProperty().set(100);// set the tabPane's tabs min and max widths to be the same.
 		tabView.tabMaxWidthProperty().set(100);// set the tabPane's tabs min and max widths to be the same.
@@ -195,7 +197,7 @@ public class MainController
 	{
 		try
 		{
-			setConnection(DriverManager.getConnection(connectionUrl));
+		
 
 			Statement stmt = getConnection().createStatement();
 			String SQL = "SELECT * FROM " + tableName;
@@ -230,7 +232,7 @@ public class MainController
 				{
 					if (data.getSelectedEntity().get() != null)
 					{
-						setConnection(DriverManager.getConnection(connectionUrl));
+						
 
 						Statement statement = getConnection().createStatement();
 						String dataSet = data.getSelectedEntity().get().getDbEntryValueMap().toString().replace("{", "").replace("}", "");

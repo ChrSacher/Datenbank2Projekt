@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><Table TableName="Abteilung"><Entry><AbtNr>1</AbtNr><AbtName>Informatik Abteilung</AbtName></Entry><Entry><AbtNr>2</AbtNr><AbtName>Physik Abteilung</AbtName></Entry><Entry><AbtNr>3</AbtNr><AbtName>Englisch Abteilung</AbtName></Entry></Table>
