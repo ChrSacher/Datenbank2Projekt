@@ -64,7 +64,7 @@ public class LoginController {
 		Pane p = fxmlLoader.load();
 		MainController fooController = (MainController) fxmlLoader.getController();
 
-		fooController.login(con);
+		fooController.login(con,userName);
 		Main.primScene.setRoot(p);
 		 
 	    } catch (IOException e) {

@@ -1,5 +1,6 @@
 package application.view;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -13,6 +14,7 @@ import java.util.TreeMap;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
+import application.Main;
 import application.TableInfo.TableColumnData;
 import application.TableInfo.TableData;
 import application.model.BaseEntity;
@@ -22,6 +24,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -32,6 +35,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.util.StringConverter;
 
 public class MainController
@@ -39,14 +44,39 @@ public class MainController
 	private Connection connection;
 	@FXML
 	private TabPane tabView;
-
+	@FXML
+	private Button logoutButton;
+	@FXML
+	private Label loggedInLabel;
+	
+	
 	private Map<String, TableData> tableData = new TreeMap<String, TableData>();
-
-	public void login(Connection connection)
+	
+	public void logout() {
+	    try {
+		Pane root;
+		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("LoginView.fxml"));
+		Main.primScene.setRoot(fxmlLoader.load());
+		tableData.clear();
+		tabView.getTabs().clear();
+		try {
+		    connection.close();
+		} catch (SQLException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}
+		 
+	    } catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	    }
+	}
+	public void login(Connection connection,String userName)
 	{
-
+	    	logoutButton.setOnMouseClicked((b) -> logout()); 
 		try
 		{
+		    	loggedInLabel.setText(userName);
 			setConnection(connection);
 			DatabaseMetaData meta = connection.getMetaData();
 			ResultSet resultSet = meta.getTables(null, null, null, new String[] { "TABLE" });
@@ -91,14 +121,20 @@ public class MainController
 		// Create TAb
 		Tab mitTab = new Tab(data.getTableName());
 		tabView.getTabs().add(mitTab);
-
+		
 		// Create Grid for layout
 		GridPane grid = new GridPane();
 		TableView<BaseEntity> table = new TableView();
+		table.setMaxWidth(Double.MAX_VALUE);
+		table.setColumnResizePolicy( TableView.CONSTRAINED_RESIZE_POLICY );
 		ColumnConstraints column1 = new ColumnConstraints();
+		column1.setHgrow(Priority.ALWAYS);
 		column1.setPercentWidth(50);
+		ColumnConstraints column2 = new ColumnConstraints();
+		column2.setHgrow(Priority.ALWAYS);
+		column2.setPercentWidth(50);
 		grid.getColumnConstraints().add(column1);
-
+		grid.getColumnConstraints().add(column2);
 		int i = 0;
 		for (Entry<String, TableColumnData> entry : data.getData().entrySet())
 		{
@@ -110,6 +146,7 @@ public class MainController
 				grid.add(label, 0, i);
 
 				ComboBox<BaseEntity> combo = new ComboBox();
+				combo.setMaxWidth(Double.MAX_VALUE);
 				ObservableList<BaseEntity> l = tableData.get(data.getForeignKeys().get(entry.getKey())).getValues();
 				combo.setItems(l);
 				combo.setConverter(new StringConverter<BaseEntity>()
@@ -154,7 +191,7 @@ public class MainController
 			{
 				Label label = new Label(entry.getKey());
 				grid.add(label, 0, i);
-
+				label.setMaxWidth(Double.MAX_VALUE);
 				TextField text = new TextField("");
 				grid.add(text, 1, i++);
 
@@ -179,6 +216,7 @@ public class MainController
 			TableColumn<BaseEntity, String> column = new TableColumn(entry.getKey());
 			column.setCellValueFactory(cellValue -> new SimpleStringProperty(cellValue.getValue().getValue(entry.getKey())));
 			table.getColumns().add(column);
+			
 		}
 		// Set Listener on table for selecting an entity
 		table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
