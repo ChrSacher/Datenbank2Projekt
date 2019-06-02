@@ -1,26 +1,17 @@
 package application.TableInfo;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.logging.Handler;
 
 import application.model.BaseEntity;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -33,8 +24,8 @@ public class TableData
 	// TableColumn,ForeignTable
 	private List<String> primaryKeys = new ArrayList<>();
 	// TableColumn,ForeignTable
-		private Map<String, String> foreignKeys = new HashMap<>();
-		
+	private Map<String, String> foreignKeys = new HashMap<>();
+
 	private ObservableList<BaseEntity> values = FXCollections.observableArrayList();
 
 	// Copy of values entity
@@ -47,10 +38,10 @@ public class TableData
 
 	public TableData(ResultSet sqlQuery, ResultSet primaryKeys, ResultSet foreignKeys)
 	{
-		loadFromQuery(sqlQuery,primaryKeys, foreignKeys);
+		loadFromQuery(sqlQuery, primaryKeys, foreignKeys);
 	}
 
-	public void loadFromQuery(ResultSet sqlQuery,ResultSet primaryKeysResult, ResultSet foreignKeysResult)
+	public void loadFromQuery(ResultSet sqlQuery, ResultSet primaryKeysResult, ResultSet foreignKeysResult)
 	{
 		try
 		{
@@ -67,15 +58,15 @@ public class TableData
 			}
 			while (foreignKeysResult.next())
 			{
-				foreignKeys.put(foreignKeysResult.getString("FKCOLUMN_NAME"),
-						foreignKeysResult.getString("PKTABLE_NAME"));
+				foreignKeys.put(foreignKeysResult.getString("FKCOLUMN_NAME"), foreignKeysResult.getString("PKTABLE_NAME"));
 				data.get(foreignKeysResult.getString("FKCOLUMN_NAME")).setForeignColumn(foreignKeysResult.getString("PKCOLUMN_NAME"));
 				data.get(foreignKeysResult.getString("FKCOLUMN_NAME")).setForeignTable(foreignKeysResult.getString("PKTABLE_NAME"));
 			}
-			while (primaryKeysResult.next()) {
-			    this.primaryKeys.add(primaryKeysResult.getString("COLUMN_NAME"));
-		                
-		            }
+			while (primaryKeysResult.next())
+			{
+				this.primaryKeys.add(primaryKeysResult.getString("COLUMN_NAME"));
+
+			}
 			System.out.println(primaryKeys);
 			loadValues(sqlQuery);
 
@@ -86,7 +77,7 @@ public class TableData
 		}
 	}
 
-	void loadValues(ResultSet sqlQuery)
+	public void loadValues(ResultSet sqlQuery)
 	{
 		values.clear();
 		try
@@ -94,8 +85,7 @@ public class TableData
 			while (sqlQuery.next())
 			{
 				BaseEntity object = new BaseEntity();
-				data.forEach((key, value) ->
-				{
+				data.forEach((key, value) -> {
 					try
 					{
 						String val = sqlQuery.getString(key);
@@ -131,8 +121,7 @@ public class TableData
 	}
 
 	/**
-	 * @param data
-	 *            the data to set
+	 * @param data the data to set
 	 */
 	public void setData(Map<String, TableColumnData> data)
 	{
@@ -148,8 +137,7 @@ public class TableData
 	}
 
 	/**
-	 * @param tableName
-	 *            the tableName to set
+	 * @param tableName the tableName to set
 	 */
 	public void setTableName(String tableName)
 	{
@@ -165,8 +153,7 @@ public class TableData
 	}
 
 	/**
-	 * @param values
-	 *            the values to set
+	 * @param values the values to set
 	 */
 	public void setValues(ObservableList<BaseEntity> values)
 	{
@@ -182,8 +169,7 @@ public class TableData
 	}
 
 	/**
-	 * @param foreignKeys
-	 *            the foreignKeys to set
+	 * @param foreignKeys the foreignKeys to set
 	 */
 	public void setForeignKeys(Map<String, String> foreignKeys)
 	{
@@ -199,12 +185,27 @@ public class TableData
 	}
 
 	/**
-	 * @param selectedEntity
-	 *            the selectedEntity to set
+	 * @param selectedEntity the selectedEntity to set
 	 */
 	public void setSelectedEntity(BaseEntity selectedEntity)
 	{
-		this.selectedEntity.setValue(new BaseEntity(selectedEntity));
+		if (selectedEntity != null)
+		{
+			this.selectedEntity.setValue(new BaseEntity(selectedEntity));
+		} else
+		{
+			this.selectedEntity.setValue(null);
+		}
+	}
+
+	public List<String> getPrimaryKeys()
+	{
+		return primaryKeys;
+	}
+
+	public void setPrimaryKeys(List<String> primaryKeys)
+	{
+		this.primaryKeys = primaryKeys;
 	}
 
 }

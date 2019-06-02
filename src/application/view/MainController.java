@@ -3,29 +3,32 @@ package application.view;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.TreeMap;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 
 import application.Main;
 import application.TableInfo.TableColumnData;
 import application.TableInfo.TableData;
 import application.model.BaseEntity;
-import application.util.XMLExporter;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -48,51 +51,56 @@ public class MainController
 	private Button logoutButton;
 	@FXML
 	private Label loggedInLabel;
-	
-	
+
 	private Map<String, TableData> tableData = new TreeMap<String, TableData>();
-	
-	public void logout() {
-	    try {
-		Pane root;
-		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("LoginView.fxml"));
-		Main.primScene.setRoot(fxmlLoader.load());
-		tableData.clear();
-		tabView.getTabs().clear();
-		try {
-		    connection.close();
-		} catch (SQLException e) {
-		    // TODO Auto-generated catch block
-		    e.printStackTrace();
-		}
-		 
-	    } catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	    }
-	}
-	public void login(Connection connection,String userName)
+
+	public void logout()
 	{
-	    	logoutButton.setOnMouseClicked((b) -> logout()); 
 		try
 		{
-		    	loggedInLabel.setText(userName);
+			Pane root;
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("LoginView.fxml"));
+			Main.primScene.setRoot(fxmlLoader.load());
+			tableData.clear();
+			tabView.getTabs().clear();
+			try
+			{
+				connection.close();
+			} catch (SQLException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void login(Connection connection, String userName)
+	{
+		logoutButton.setOnMouseClicked((b) -> logout());
+		try
+		{
+			loggedInLabel.setText(userName);
 			setConnection(connection);
 			DatabaseMetaData meta = connection.getMetaData();
 			ResultSet resultSet = meta.getTables(null, null, null, new String[] { "TABLE" });
 
 			while (resultSet.next())
 			{
-			    String tableName = resultSet.getString(3);
-			    
+				String tableName = resultSet.getString(3);
+
 				if ("trace_xe_action_map".equals(tableName) || "trace_xe_event_map".equals(resultSet.getString(3)) || "sysdiagrams".equals(resultSet.getString(3)))
 					continue;
 				ResultSet foreignKeys = meta.getImportedKeys(null, null, tableName);
 				ResultSet primaryKeys = meta.getPrimaryKeys(null, null, tableName);
-				addNewTable(tableName,primaryKeys, foreignKeys);
+				addNewTable(tableName, primaryKeys, foreignKeys);
 			}
 		}
-		
+
 		// Handle any errors that may have occurred.
 		catch (SQLException e)
 		{
@@ -100,7 +108,7 @@ public class MainController
 		}
 		tableData.forEach((key, value) -> {
 			addTab(value);
-			
+
 		});
 		tabView.tabMinWidthProperty().set(100);// set the tabPane's tabs min and max widths to be the same.
 		tabView.tabMaxWidthProperty().set(100);// set the tabPane's tabs min and max widths to be the same.
@@ -121,12 +129,12 @@ public class MainController
 		// Create TAb
 		Tab mitTab = new Tab(data.getTableName());
 		tabView.getTabs().add(mitTab);
-		
+
 		// Create Grid for layout
 		GridPane grid = new GridPane();
 		TableView<BaseEntity> table = new TableView();
 		table.setMaxWidth(Double.MAX_VALUE);
-		table.setColumnResizePolicy( TableView.CONSTRAINED_RESIZE_POLICY );
+		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		ColumnConstraints column1 = new ColumnConstraints();
 		column1.setHgrow(Priority.ALWAYS);
 		column1.setPercentWidth(50);
@@ -216,11 +224,14 @@ public class MainController
 			TableColumn<BaseEntity, String> column = new TableColumn(entry.getKey());
 			column.setCellValueFactory(cellValue -> new SimpleStringProperty(cellValue.getValue().getValue(entry.getKey())));
 			table.getColumns().add(column);
-			
+
 		}
 		// Set Listener on table for selecting an entity
 		table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-			data.setSelectedEntity(newSelection);
+			if (newSelection != null)
+			{
+				data.setSelectedEntity(newSelection);
+			}
 		});
 		grid.add(table, 0, i, 5, 1);
 
@@ -231,18 +242,17 @@ public class MainController
 		table.setItems(data.getValues());
 	}
 
-	public void addNewTable(String tableName,ResultSet primaryKeys, ResultSet foreignKeys)
+	public void addNewTable(String tableName, ResultSet primaryKeys, ResultSet foreignKeys)
 	{
 		try
 		{
-		
 
 			Statement stmt = getConnection().createStatement();
 			String SQL = "SELECT * FROM " + tableName;
 
 			ResultSet rs = stmt.executeQuery(SQL);
 
-			TableData da = new TableData(rs,primaryKeys, foreignKeys);
+			TableData da = new TableData(rs, primaryKeys, foreignKeys);
 			da.setTableName(tableName);
 			tableData.put(tableName, da);
 
@@ -268,45 +278,118 @@ public class MainController
 			{
 				try
 				{
+					System.out.println("SAVE BUTTON: " + data.getSelectedEntity());
 					if (data.getSelectedEntity().get() != null)
 					{
-						
 
-						Statement statement = getConnection().createStatement();
-						String dataSet = data.getSelectedEntity().get().getDbEntryValueMap().toString().replace("{", "").replace("}", "");
+						List<String> primaryKeys = new ArrayList<>();
+						primaryKeys.addAll(data.getPrimaryKeys());
 
-						String QUERY = "";
-						// Temporary!!! TODO
-						String id = "";
-						String idColumnName = "";
+						String tableName = data.getTableName();
+						String whatToUpdate = "";
+						String whereToUpdate = "";
+						List<Entry<String, String>> primaryEntries = new ArrayList<Map.Entry<String, String>>();
 
-						for (Entry<String, String> entry : data.getSelectedEntity().get().getDbEntryValueMap().entrySet())
+						for (Iterator<Entry<String, String>> it = data.getSelectedEntity().get().getDbEntryValueMap().entrySet().iterator(); it.hasNext();)
 						{
-							if (entry.getKey().contains("Nr"))
+							Entry<String, String> entry = it.next();
+							if (it.hasNext())
 							{
-								id = entry.getValue();
-								idColumnName = entry.getKey();
-							}
-//						System.out.println("Main Controler data.getSelectedEntity Entries: " + entry.getValue());
-							String entryToUpdate = entry.getKey() + "= '" + entry.getValue() + "'";
-//						System.out.println("Main Controller Entry To Update: " + entryToUpdate);
-							String entryQUERY = "UPDATE " + data.getTableName() + " SET " + entryToUpdate + " WHERE " + idColumnName + " ='" + id + "'; \n";
-//						System.out.println("Main Controller QUERY: " + entryQUERY);
+								whatToUpdate += entry.getKey() + "='" + entry.getValue() + "', ";
 
-							QUERY += entryQUERY;
+							} else
+							{
+								whatToUpdate += entry.getKey() + "='" + entry.getValue() + "'";
+
+							}
+							if (primaryKeys.contains(entry.getKey()))
+							{
+								primaryEntries.add(entry);
+							}
 
 						}
-						System.out.println("WHOLE UPDATE QUERY: " + QUERY);
-						statement.execute(QUERY);
+
+						for (Iterator<Entry<String, String>> it = primaryEntries.iterator(); it.hasNext();)
+						{
+							Entry<String, String> entry = it.next();
+							if (it.hasNext())
+							{
+								whereToUpdate += entry.getKey() + "='" + entry.getValue() + "' AND ";
+							} else
+							{
+								whereToUpdate += entry.getKey() + "='" + entry.getValue() + "'";
+							}
+						}
+
+						String QUERY = "UPDATE " + tableName + " SET " + whatToUpdate + " WHERE " + whereToUpdate;
+						System.out.println("TABLE NAME: " + tableName);
+						System.out.println("WHAT TO UPDATE: " + whatToUpdate);
+						System.out.println("WHERE TO UPDATE: " + whereToUpdate);
+						System.out.println("WHOLE QUERY: " + QUERY);
+
+						PreparedStatement statement = getConnection().prepareStatement(QUERY);
+
+						int rowsUpdated = statement.executeUpdate();
+						if (rowsUpdated > 0)
+						{
+							System.out.println("UPDATE ERFOLGREICH, ROWS UPDATED: " + rowsUpdated);
+						} else
+						{
+							Optional<ButtonType> buttonOpt = showAlert("Datensatz nicht gefunden", "Neuen Datensatz anlegen?",
+									"Datensatz mit angegebenen Primärschlüsseln nicht gefunden. Wollen Sie einen neuen Datensatz erstellen?");
+							if (buttonOpt.isPresent())
+							{
+								ButtonType buttonType = buttonOpt.get();
+								if (buttonType == ButtonType.OK)
+								{
+									String keys = "";
+									String values = "";
+									for (Iterator<Entry<String, String>> it = data.getSelectedEntity().get().getDbEntryValueMap().entrySet().iterator(); it.hasNext();)
+									{
+										Entry<String, String> entry = it.next();
+										if (it.hasNext())
+										{
+											keys += entry.getKey() + ",";
+											values += "'" + entry.getValue() + "',";
+										} else
+										{
+											keys += entry.getKey();
+											values += "'" + entry.getValue() + "'";
+										}
+									}
+									QUERY = "INSERT INTO " + tableName + " (" + keys + ") " + " VALUES (" + values + ")";
+									System.out.println("QUERY INSERT: " + QUERY);
+									statement = getConnection().prepareStatement(QUERY);
+									statement.execute();
+
+								}
+							}
+						}
+						Statement stmt = getConnection().createStatement();
+						String SQL = "SELECT * FROM " + data.getTableName();
+
+						ResultSet rs = stmt.executeQuery(SQL);
+						data.loadValues(rs);
 					}
 
 				} catch (SQLException ex)
 				{
 					ex.printStackTrace();
 				}
+
 			}
 		});
 
+	}
+
+	private Optional<ButtonType> showAlert(String title, String header, String content)
+	{
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle(title);
+		alert.setHeaderText(header);
+		alert.setContentText(content);
+
+		return alert.showAndWait();
 	}
 
 	public Connection getConnection()
