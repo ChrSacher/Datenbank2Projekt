@@ -178,6 +178,15 @@ public class MainController
 						return null;
 					}
 				});
+				combo.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+					if (newSelection != null)
+					{
+					    TableColumnData foreign = entry.getValue();
+					    String foreignTable = foreign.getForeignTable();
+					    String foreignColumn = foreign.getForeignColumn();
+					    data.getSelectedEntity().getValue().setValue(entry.getKey(), newSelection.getValue(foreignColumn));
+					}
+				});
 				grid.add(combo, 1, i++);
 
 				data.getSelectedEntity().addListener((observableVal, old, newValue) -> {
@@ -185,7 +194,6 @@ public class MainController
 					{
 
 						TableColumnData foreign = entry.getValue();
-						System.out.println(foreign.getForeignTable());
 						BaseEntity entity = tableData.get(foreign.getForeignTable()).getValues().stream().filter(ent -> {
 							if (newValue.getValue(entry.getKey()).equals(ent.getValue(foreign.getForeignColumn())))
 								return true;
