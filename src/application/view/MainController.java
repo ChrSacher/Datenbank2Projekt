@@ -255,6 +255,7 @@ public class MainController
 			TableData da = new TableData(rs, primaryKeys, foreignKeys);
 			da.setTableName(tableName);
 			tableData.put(tableName, da);
+			da.setSelectedEntity(new BaseEntity());
 
 		}
 		// Handle any errors that may have occurred.

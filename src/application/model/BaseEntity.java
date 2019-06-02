@@ -7,18 +7,22 @@ import java.util.Map;
 public class BaseEntity {
 
     private Map<String, String> dbEntryValueMap = new HashMap();
-    
+
     @Override
-	public boolean equals(Object arg0)
-	{
-    	BaseEntity other = (BaseEntity)arg0;
-    	if(other == null) return false;
-    	return dbEntryValueMap.equals(other.dbEntryValueMap);
-	}
-	public BaseEntity(BaseEntity other)
-    {
-    	dbEntryValueMap = new HashMap(other.dbEntryValueMap);
+    public boolean equals(Object arg0) {
+	BaseEntity other = (BaseEntity) arg0;
+	if (other == null)
+	    return false;
+	return dbEntryValueMap.equals(other.dbEntryValueMap);
     }
+    public void emptyCopy(BaseEntity other) {
+	other.dbEntryValueMap.forEach((key,value) -> dbEntryValueMap.put(key, ""));
+    }
+    
+    public BaseEntity(BaseEntity other) {
+	dbEntryValueMap = new HashMap(other.dbEntryValueMap);
+    }
+
     /**
      * @return the dbEntryValueMap
      */
@@ -49,13 +53,11 @@ public class BaseEntity {
 	super();
     }
 
-    public void setValue(String key,String value)
-    {
+    public void setValue(String key, String value) {
 	dbEntryValueMap.put(key, value);
     }
-    
-    public String getValue(String key)
-    {
+
+    public String getValue(String key) {
 	return dbEntryValueMap.get(key);
     }
 }
