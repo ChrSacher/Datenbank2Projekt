@@ -306,8 +306,22 @@ public class MainController
 						String whatToUpdate = "";
 						String whereToUpdate = "";
 						List<Entry<String, String>> primaryEntries = new ArrayList<Map.Entry<String, String>>();
+						List<Entry<String, String>> otherEntries = new ArrayList<Map.Entry<String, String>>();
 
 						for (Iterator<Entry<String, String>> it = data.getSelectedEntity().get().getDbEntryValueMap().entrySet().iterator(); it.hasNext();)
+						{
+							Entry<String, String> entry = it.next();
+							if (primaryKeys.contains(entry.getKey()))
+							{
+								primaryEntries.add(entry);
+							} else
+							{
+								otherEntries.add(entry);
+							}
+
+						}
+
+						for (Iterator<Entry<String, String>> it = otherEntries.iterator(); it.hasNext();)
 						{
 							Entry<String, String> entry = it.next();
 							if (it.hasNext())
@@ -319,11 +333,6 @@ public class MainController
 								whatToUpdate += entry.getKey() + "='" + entry.getValue() + "'";
 
 							}
-							if (primaryKeys.contains(entry.getKey()))
-							{
-								primaryEntries.add(entry);
-							}
-
 						}
 
 						for (Iterator<Entry<String, String>> it = primaryEntries.iterator(); it.hasNext();)
@@ -464,7 +473,7 @@ public class MainController
 
 				} catch (SQLException ex)
 				{
-					showAlert("Datensatz auswählen", "Datensatz wurde nicht ausgewählt", "Ein Datensatz muss ausgewählt sein, um ihn zu löschen");
+					showAlert("Datensatz auswählen", "Datensatz wurde nicht ausgewählt", ex.getMessage());
 				}
 			}
 		});
