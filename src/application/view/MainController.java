@@ -194,12 +194,18 @@ public class MainController
 					{
 
 						TableColumnData foreign = entry.getValue();
-						BaseEntity entity = tableData.get(foreign.getForeignTable()).getValues().stream().filter(ent -> {
+						Optional<BaseEntity> entity = tableData.get(foreign.getForeignTable()).getValues().stream().filter(ent -> {
 							if (newValue.getValue(entry.getKey()).equals(ent.getValue(foreign.getForeignColumn())))
 								return true;
 							return false;
-						}).findFirst().get();
-						combo.getSelectionModel().select(entity);
+						}).findFirst();
+						if(entity.isPresent()) {
+						    combo.getSelectionModel().select(entity.get());
+						}else {
+						    showAlert("Referenz Fehler in der Datenbank!", "Der Datensatz +" + newValue.getDbEntryValueMap().toString() + "referenziert einen nicht existierenden Datensatz.",
+							    "Die Funktionalität dieses Programmes ist nicht gewährleistet");
+						}
+						
 					}
 				});
 
