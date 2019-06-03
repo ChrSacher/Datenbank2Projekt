@@ -181,10 +181,10 @@ public class MainController
 				combo.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
 					if (newSelection != null)
 					{
-					    TableColumnData foreign = entry.getValue();
-					    String foreignTable = foreign.getForeignTable();
-					    String foreignColumn = foreign.getForeignColumn();
-					    data.getSelectedEntity().getValue().setValue(entry.getKey(), newSelection.getValue(foreignColumn));
+						TableColumnData foreign = entry.getValue();
+						String foreignTable = foreign.getForeignTable();
+						String foreignColumn = foreign.getForeignColumn();
+						data.getSelectedEntity().getValue().setValue(entry.getKey(), newSelection.getValue(foreignColumn));
 					}
 				});
 				grid.add(combo, 1, i++);
@@ -245,6 +245,8 @@ public class MainController
 
 		// SAVE BUTTON
 		addSaveButton(data, grid, i);
+		// DELETE BUTTON
+		addDeleteButton(data, grid, i);
 
 		mitTab.setContent(grid);
 		table.setItems(data.getValues());
@@ -277,7 +279,7 @@ public class MainController
 	{
 		Button saveButton = new Button();
 
-		saveButton.setText("Save Changes");
+		saveButton.setText("Speichern");
 		grid.add(saveButton, 0, i + 1);
 
 		saveButton.setOnAction(new EventHandler<ActionEvent>()
@@ -383,12 +385,83 @@ public class MainController
 
 				} catch (SQLException ex)
 				{
-					ex.printStackTrace();
+					showAlert("Fehler", "Der Datensatz konnte nicht bearbeitet werden", ex.getMessage());
 				}
 
 			}
 		});
 
+	}
+
+	private void addDeleteButton(TableData data, GridPane grid, int i)
+	{
+		Button deleteButton = new Button();
+
+		deleteButton.setText("Löschen");
+		grid.add(deleteButton, 1, i + 1);
+
+		deleteButton.setOnAction(new EventHandler<ActionEvent>()
+		{
+
+			@Override
+			public void handle(ActionEvent event)
+			{
+				try
+				{
+					System.out.println("SAVE BUTTON: " + data.getSelectedEntity());
+					if (data.getSelectedEntity().get() != null)
+					{
+						List<String> primaryKeys = new ArrayList<>();
+						primaryKeys.addAll(data.getPrimaryKeys());
+						List<Entry<String, String>> primaryEntries = new ArrayList<Map.Entry<String, String>>();
+						String tableName = data.getTableName();
+						String whereToDelete = "";
+
+						for (Iterator<Entry<String, String>> it = data.getSelectedEntity().get().getDbEntryValueMap().entrySet().iterator(); it.hasNext();)
+						{
+							Entry<String, String> entry = it.next();
+							if (primaryKeys.contains(entry.getKey()))
+							{
+								primaryEntries.add(entry);
+							}
+						}
+						for (Iterator<Entry<String, String>> it = primaryEntries.iterator(); it.hasNext();)
+						{
+							Entry<String, String> entry = it.next();
+							if (it.hasNext())
+							{
+								whereToDelete += entry.getKey() + "='" + entry.getValue() + "' AND ";
+							} else
+							{
+								whereToDelete += entry.getKey() + "='" + entry.getValue() + "'";
+							}
+						}
+
+						String QUERY = "DELETE FROM " + tableName + " WHERE " + whereToDelete;
+						PreparedStatement statement = getConnection().prepareStatement(QUERY);
+
+						int rowsUpdated = statement.executeUpdate();
+						if (rowsUpdated > 0)
+						{
+							System.out.println("UPDATE ERFOLGREICH, ROWS UPDATED: " + rowsUpdated);
+						} else
+						{
+							showAlert("Löschen nicht möglich", "Der Datensatz konnte nicht gelöscht werden", "LULW");
+						}
+						Statement stmt = getConnection().createStatement();
+						String SQL = "SELECT * FROM " + data.getTableName();
+
+						ResultSet rs = stmt.executeQuery(SQL);
+						data.loadValues(rs);
+
+					}
+
+				} catch (SQLException ex)
+				{
+					showAlert("Datensatz auswählen", "Datensatz wurde nicht ausgewählt", "Ein Datensatz muss ausgewählt sein, um ihn zu löschen");
+				}
+			}
+		});
 	}
 
 	private Optional<ButtonType> showAlert(String title, String header, String content)
