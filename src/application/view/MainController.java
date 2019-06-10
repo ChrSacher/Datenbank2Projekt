@@ -25,6 +25,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -132,9 +133,11 @@ public class MainController
 
 		// Create Grid for layout
 		GridPane grid = new GridPane();
-		TableView<BaseEntity> table = new TableView();
-		table.setMaxWidth(Double.MAX_VALUE);
-		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		grid.setHgap(10); //horizontal gap in pixels => that's what you are asking for
+		grid.setVgap(10); //vertical gap in pixels
+		grid.setPadding(new Insets(10, 10, 10, 10)); //margins around the whole grid
+		grid.setMaxHeight(Double.MAX_VALUE);
+
 		ColumnConstraints column1 = new ColumnConstraints();
 		column1.setHgrow(Priority.ALWAYS);
 		column1.setPercentWidth(50);
@@ -143,6 +146,14 @@ public class MainController
 		column2.setPercentWidth(50);
 		grid.getColumnConstraints().add(column1);
 		grid.getColumnConstraints().add(column2);
+		
+		
+		TableView<BaseEntity> table = new TableView();
+		table.setMaxWidth(Double.MAX_VALUE);
+		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		table.setMaxHeight(Double.MAX_VALUE);
+		grid.setHgrow(table,Priority.ALWAYS);
+		
 		int i = 0;
 		for (Entry<String, TableColumnData> entry : data.getData().entrySet())
 		{
@@ -155,6 +166,7 @@ public class MainController
 
 				ComboBox<BaseEntity> combo = new ComboBox();
 				combo.setMaxWidth(Double.MAX_VALUE);
+				
 				ObservableList<BaseEntity> l = tableData.get(data.getForeignKeys().get(entry.getKey())).getValues();
 				combo.setItems(l);
 				combo.setConverter(new StringConverter<BaseEntity>()
@@ -247,12 +259,14 @@ public class MainController
 				data.setSelectedEntity(newSelection);
 			}
 		});
-		grid.add(table, 0, i, 5, 1);
-
 		// SAVE BUTTON
 		addSaveButton(data, grid, i);
-		// DELETE BUTTON
+				// DELETE BUTTON
 		addDeleteButton(data, grid, i);
+				
+		grid.add(table, 0, i + 1, 5, 1);
+
+		
 
 		mitTab.setContent(grid);
 		table.setItems(data.getValues());
@@ -286,7 +300,7 @@ public class MainController
 		Button saveButton = new Button();
 
 		saveButton.setText("Speichern");
-		grid.add(saveButton, 0, i + 1);
+		grid.add(saveButton, 0, i);
 
 		saveButton.setOnAction(new EventHandler<ActionEvent>()
 		{
@@ -413,7 +427,7 @@ public class MainController
 		Button deleteButton = new Button();
 
 		deleteButton.setText("Löschen");
-		grid.add(deleteButton, 1, i + 1);
+		grid.add(deleteButton, 1, i);
 
 		deleteButton.setOnAction(new EventHandler<ActionEvent>()
 		{

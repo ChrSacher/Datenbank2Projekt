@@ -1,9 +1,12 @@
 package application.view;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.stream.Stream;
 
 import application.Main;
 import javafx.collections.FXCollections;
@@ -38,12 +41,23 @@ public class LoginController {
     public void initialize()
     {
 	loginButton.setOnMouseClicked((v) -> login());
-	ObservableList<String> options = 
-		    FXCollections.observableArrayList(
-		        "jdbc:sqlserver://localhost:1433;",
-		        "jdbc:sqlserver://DESKTOP-K7FKTFD\\\\\\\\SQLEXPRESS:61180;"
-		    );
-	serverCombo.setItems(options);
+	final ObservableList<String> obs =  FXCollections.observableArrayList();
+	try (Stream<String> stream = Files.lines(Paths.get("src/application/res/serverList.txt"))) {
+	        stream.forEach(line -> obs.add(line.trim()));
+	}catch(Exception e) {
+	    e.printStackTrace();
+	    Alert alert = new Alert(AlertType.ERROR); 
+	    alert.setTitle("Server Error");
+	    alert.setHeaderText("Serverlist File has not been found! Using default servers");
+	    alert.setContentText(e.getMessage());	     
+	    alert.showAndWait();
+	    obs.clear();
+	    obs.add("jdbc:sqlserver://localhost:1433;");
+	    obs.add("jdbc:sqlserver://DESKTOP-K7FKTFD\\\\\\\\SQLEXPRESS:61180;");
+	}
+	
+	
+	serverCombo.setItems(obs);
 	
 	serverCombo.getSelectionModel().select(0);
     }
