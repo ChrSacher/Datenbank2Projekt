@@ -1,5 +1,6 @@
 package application.view;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -15,10 +16,14 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import application.Main;
 import application.TableInfo.TableColumnData;
 import application.TableInfo.TableData;
 import application.model.BaseEntity;
+import application.util.XMLExporter;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -39,8 +44,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 
 public class MainController
@@ -259,19 +266,56 @@ public class MainController
 				data.setSelectedEntity(newSelection);
 			}
 		});
+		HBox buttonBox = new HBox();
+		buttonBox.setPadding(new Insets(0,30,0,30));
+		buttonBox.setSpacing(20);
 		// SAVE BUTTON
-		addSaveButton(data, grid, i);
+		addSaveButton(data, buttonBox);
 				// DELETE BUTTON
-		addDeleteButton(data, grid, i);
-				
+		addDeleteButton(data, buttonBox);
+		addExportButton(data, buttonBox);
+		grid.add(buttonBox, 0, i, 5, 1);	
 		grid.add(table, 0, i + 1, 5, 1);
-
-		
 
 		mitTab.setContent(grid);
 		table.setItems(data.getValues());
 	}
-
+	public void addExportButton(TableData data ,HBox box) {
+	    Button exportButton = new Button();
+	    exportButton.setText("Export");
+	    box.getChildren().add(exportButton);
+	    
+	    exportButton.setOnMouseClicked(button -> {
+		TableData tData = tableData.get(data.getTableName());
+		if(tData != null) {
+		    XMLExporter exp = new XMLExporter();
+		    FileChooser fileChooser = new FileChooser();
+		    fileChooser.setTitle("Export Table");
+		    fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
+		    fileChooser.setInitialFileName(data.getTableName() + "_Export.xml");
+		    FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml");
+		    fileChooser.getExtensionFilters().add(extFilter);
+	            File file = fileChooser.showSaveDialog(Main.getPrimStage());
+	            if(file != null) {
+	        	 try {
+				exp.exportTable(tData, file.getAbsolutePath());
+			    } catch (ParserConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			    } catch (TransformerException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			    }
+	            }else {
+	        	System.out.println("File null");
+	            }
+	           
+		}else {
+		    
+		}
+		
+	    });
+	}
 	public void addNewTable(String tableName, ResultSet primaryKeys, ResultSet foreignKeys)
 	{
 		try
@@ -295,12 +339,12 @@ public class MainController
 		}
 	}
 
-	public void addSaveButton(TableData data, GridPane grid, int i)
+	public void addSaveButton(TableData data ,HBox box)
 	{
 		Button saveButton = new Button();
 
 		saveButton.setText("Speichern");
-		grid.add(saveButton, 0, i);
+		box.getChildren().add(saveButton);
 
 		saveButton.setOnAction(new EventHandler<ActionEvent>()
 		{
@@ -422,12 +466,12 @@ public class MainController
 
 	}
 
-	private void addDeleteButton(TableData data, GridPane grid, int i)
+	private void addDeleteButton(TableData data,HBox box)
 	{
 		Button deleteButton = new Button();
 
 		deleteButton.setText("Löschen");
-		grid.add(deleteButton, 1, i);
+		box.getChildren().add(deleteButton);
 
 		deleteButton.setOnAction(new EventHandler<ActionEvent>()
 		{

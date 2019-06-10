@@ -41,8 +41,9 @@ public class LoginController {
     public void initialize()
     {
 	loginButton.setOnMouseClicked((v) -> login());
+	
 	final ObservableList<String> obs =  FXCollections.observableArrayList();
-	try (Stream<String> stream = Files.lines(Paths.get("src/application/res/serverList.txt"))) {
+	try (Stream<String> stream = Files.lines(Paths.get("./res/serverList.txt"))) {
 	        stream.forEach(line -> obs.add(line.trim()));
 	}catch(Exception e) {
 	    e.printStackTrace();

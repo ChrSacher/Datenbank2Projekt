@@ -1,0 +1,2 @@
+jdbc:sqlserver://localhost:1433;
+jdbc:sqlserver://DESKTOP-K7FKTFD\\\\SQLEXPRESS:61180;
