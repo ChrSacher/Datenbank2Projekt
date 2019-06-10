@@ -1,5 +1,7 @@
 package application;
 
+import com.sun.javafx.css.StyleManager;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,9 +19,10 @@ public class Main extends Application
 	{
 		try
 		{
+    		    
 			Pane root = FXMLLoader.load(getClass().getResource("view/LoginView.fxml"));
 			Scene scene = new Scene(root, 800, 600);
-			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+			scene.getStylesheets().add(getClass().getResource("FlatBee.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.show();
 			primStage = primaryStage;
