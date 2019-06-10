@@ -140,9 +140,9 @@ public class MainController
 
 		// Create Grid for layout
 		GridPane grid = new GridPane();
-		grid.setHgap(10); //horizontal gap in pixels => that's what you are asking for
-		grid.setVgap(10); //vertical gap in pixels
-		grid.setPadding(new Insets(10, 10, 10, 10)); //margins around the whole grid
+		grid.setHgap(10); // horizontal gap in pixels => that's what you are asking for
+		grid.setVgap(10); // vertical gap in pixels
+		grid.setPadding(new Insets(10, 10, 10, 10)); // margins around the whole grid
 		grid.setMaxHeight(Double.MAX_VALUE);
 
 		ColumnConstraints column1 = new ColumnConstraints();
@@ -153,14 +153,13 @@ public class MainController
 		column2.setPercentWidth(50);
 		grid.getColumnConstraints().add(column1);
 		grid.getColumnConstraints().add(column2);
-		
-		
+
 		TableView<BaseEntity> table = new TableView();
 		table.setMaxWidth(Double.MAX_VALUE);
 		table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		table.setMaxHeight(Double.MAX_VALUE);
-		grid.setHgrow(table,Priority.ALWAYS);
-		
+		grid.setHgrow(table, Priority.ALWAYS);
+
 		int i = 0;
 		for (Entry<String, TableColumnData> entry : data.getData().entrySet())
 		{
@@ -173,7 +172,7 @@ public class MainController
 
 				ComboBox<BaseEntity> combo = new ComboBox();
 				combo.setMaxWidth(Double.MAX_VALUE);
-				
+
 				ObservableList<BaseEntity> l = tableData.get(data.getForeignKeys().get(entry.getKey())).getValues();
 				combo.setItems(l);
 				combo.setConverter(new StringConverter<BaseEntity>()
@@ -218,13 +217,15 @@ public class MainController
 								return true;
 							return false;
 						}).findFirst();
-						if(entity.isPresent()) {
-						    combo.getSelectionModel().select(entity.get());
-						}else {
-						    showAlert("Referenz Fehler in der Datenbank!", "Der Datensatz +" + newValue.getDbEntryValueMap().toString() + "referenziert einen nicht existierenden Datensatz.",
-							    "Die Funktionalität dieses Programmes ist nicht gewährleistet");
+						if (entity.isPresent())
+						{
+							combo.getSelectionModel().select(entity.get());
+						} else
+						{
+							showAlert("Referenz Fehler in der Datenbank!", "Der Datensatz +" + newValue.getDbEntryValueMap().toString() + "referenziert einen nicht existierenden Datensatz.",
+									"Die Funktionalität dieses Programmes ist nicht gewährleistet");
 						}
-						
+
 					}
 				});
 
@@ -267,55 +268,65 @@ public class MainController
 			}
 		});
 		HBox buttonBox = new HBox();
-		buttonBox.setPadding(new Insets(0,30,0,30));
+		buttonBox.setPadding(new Insets(0, 30, 0, 30));
 		buttonBox.setSpacing(20);
 		// SAVE BUTTON
 		addSaveButton(data, buttonBox);
-				// DELETE BUTTON
+		// DELETE BUTTON
 		addDeleteButton(data, buttonBox);
 		addExportButton(data, buttonBox);
-		grid.add(buttonBox, 0, i, 5, 1);	
+		grid.add(buttonBox, 0, i, 5, 1);
 		grid.add(table, 0, i + 1, 5, 1);
 
 		mitTab.setContent(grid);
 		table.setItems(data.getValues());
 	}
-	public void addExportButton(TableData data ,HBox box) {
-	    Button exportButton = new Button();
-	    exportButton.setText("Export");
-	    box.getChildren().add(exportButton);
-	    
-	    exportButton.setOnMouseClicked(button -> {
-		TableData tData = tableData.get(data.getTableName());
-		if(tData != null) {
-		    XMLExporter exp = new XMLExporter();
-		    FileChooser fileChooser = new FileChooser();
-		    fileChooser.setTitle("Export Table");
-		    fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
-		    fileChooser.setInitialFileName(data.getTableName() + "_Export.xml");
-		    FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml");
-		    fileChooser.getExtensionFilters().add(extFilter);
-	            File file = fileChooser.showSaveDialog(Main.getPrimStage());
-	            if(file != null) {
-	        	 try {
-				exp.exportTable(tData, file.getAbsolutePath());
-			    } catch (ParserConfigurationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			    } catch (TransformerException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			    }
-	            }else {
-	        	System.out.println("File null");
-	            }
-	           
-		}else {
-		    
-		}
-		
-	    });
+
+	public void addExportButton(TableData data, HBox box)
+	{
+		Button exportButton = new Button();
+		exportButton.setText("Export");
+		box.getChildren().add(exportButton);
+
+		exportButton.setOnMouseClicked(button -> {
+			TableData tData = tableData.get(data.getTableName());
+			if (tData != null)
+			{
+				XMLExporter exp = new XMLExporter();
+				FileChooser fileChooser = new FileChooser();
+				fileChooser.setTitle("Export Table");
+				fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
+				fileChooser.setInitialFileName(data.getTableName() + "_Export.xml");
+				FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml");
+				fileChooser.getExtensionFilters().add(extFilter);
+				File file = fileChooser.showSaveDialog(Main.getPrimStage());
+				if (file != null)
+				{
+					try
+					{
+						exp.exportTable(tData, file.getAbsolutePath());
+					} catch (ParserConfigurationException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (TransformerException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else
+				{
+					System.out.println("File null");
+				}
+
+			} else
+			{
+
+			}
+
+		});
 	}
+
 	public void addNewTable(String tableName, ResultSet primaryKeys, ResultSet foreignKeys)
 	{
 		try
@@ -339,7 +350,7 @@ public class MainController
 		}
 	}
 
-	public void addSaveButton(TableData data ,HBox box)
+	public void addSaveButton(TableData data, HBox box)
 	{
 		Button saveButton = new Button();
 
@@ -428,7 +439,7 @@ public class MainController
 								{
 									String keys = "";
 									String values = "";
-									for (Iterator<Entry<String, String>> it = data.getSelectedEntity().get().getDbEntryValueMap().entrySet().iterator(); it.hasNext();)
+									for (Iterator<Entry<String, String>> it = otherEntries.iterator(); it.hasNext();)
 									{
 										Entry<String, String> entry = it.next();
 										if (it.hasNext())
@@ -441,7 +452,21 @@ public class MainController
 											values += "'" + entry.getValue() + "'";
 										}
 									}
+//									for (Iterator<Entry<String, String>> it = data.getSelectedEntity().get().getDbEntryValueMap().entrySet().iterator(); it.hasNext();)
+//									{
+//										Entry<String, String> entry = it.next();
+//										if (it.hasNext())
+//										{
+//											keys += entry.getKey() + ",";
+//											values += "'" + entry.getValue() + "',";
+//										} else
+//										{
+//											keys += entry.getKey();
+//											values += "'" + entry.getValue() + "'";
+//										}
+//									}
 									QUERY = "INSERT INTO " + tableName + " (" + keys + ") " + " VALUES (" + values + ")";
+//									QUERY = "INSERT INTO " + tableName + " VALUES (" + values + ")";
 									System.out.println("QUERY INSERT: " + QUERY);
 									statement = getConnection().prepareStatement(QUERY);
 									statement.execute();
@@ -466,7 +491,7 @@ public class MainController
 
 	}
 
-	private void addDeleteButton(TableData data,HBox box)
+	private void addDeleteButton(TableData data, HBox box)
 	{
 		Button deleteButton = new Button();
 
